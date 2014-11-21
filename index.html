@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="shortcut icon" href="images/favicon.png"/>
+<meta name=viewport content="width=device-width, initial-scale=1">
+</head>
+<body id="loginbg" style="background:url(images/Loginbg.png);">
+<style>
+.butmain{border: solid 1px;
+padding: 10px 0 10px 0;
+width: 100%; text-align:center;-webkit-border-radius: 5px;
+-moz-border-radius: 5px;
+border-radius: 5px;margin: 10px 0 10px 0;-webkit-box-shadow: 0px 0px 5px 0px rgba(50, 50, 50, 0.75);
+-moz-box-shadow:    0px 0px 5px 0px rgba(50, 50, 50, 0.75);
+box-shadow:         0px 0px 5px 0px rgba(50, 50, 50, 0.75);}
+.butmain a{padding: 10px 40% 10px 39%;font-family: sans-serif;
+text-transform: uppercase; color:#333333;}
+.butmain:hover{ background:gainsboro;-webkit-box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.66);
+-moz-box-shadow:    0px 0px 8px 0px rgba(0, 0, 0, 0.66);
+box-shadow:         0px 0px 8px 0px rgba(0, 0, 0, 0.66);}
+
+#label[accesskey]:after { font-size:30px !important; padding:0 0 5px 0;}
+.keytips{ display:none;}
+label[accesskey]:after {
+  content: " [" attr(accesskey) "]";
+  text-transform: uppercase;
+  color: #fff;
+  font-size: x-large;
+  border:solid 1px; color:#000;
+  background-color:#FF0000;
+}
+.mainboldstuff{text-align:center; font-size:xx-large; color:#000;}
+</style>
+<p class="mainboldstuff">Main Menu<br>
+<b id='boldStuff'></b> </p>
+<div id="loginmain" style=" display:block;height: 275px;margin: 150px auto; width:620px;">
+<p style="margin: 85px 0 0 48px;float: left;font-size: xx-large; color:#FFFFFF;">Please <spn style="color: cornflowerblue;">Login</spn></p> 
+<div id="login" style="display:block;width: 400px;height: 250px;margin: 25px 0 0 210px;"> 
+                    <input style="margin: 30px 0 0 47px;padding: 11px 0 8px 5px;width: 250px;background: transparent;border: solid 1px;color: white;font-size: medium;" accesskey="E" type="email" id="UserEmail" placeholder="Email Address" />
+                    <label id="label" class="keytips" for="Email" accesskey="E" style="float:right;padding: 30px 51px 0 0;"></label>
+                    <input style="margin: 15px 0 0 47px;padding: 11px 0 8px 5px;width: 250px;background: transparent;border: solid 1px;color: white;font-size: medium;" accesskey="P" type="password"  id="Password" placeholder="Password" />
+                    <label id="label" class="keytips" for="Password" accesskey="P" style="float:right;padding: 17px 51px 0 0;"></label><br>
+                    <label id="label" class="keytips" for="login" accesskey="S" style="float:right;padding: 17px 51px 0 0;"></label>
+                    <button onclick="logIn()" style="float: none;margin: 16px 0 0 47px;width: 257px;padding: 10px 0 11px 0;border: 0;color: cornflowerblue;background: #fff;font-size: medium;" accesskey="S" />Sign In</button>
+</div></div>
+<div id="accessme" style="display:none"> 
+<hr>
+<h2 style="text-align: center;font-family: sans-serif; font-weight:600;">Controller</h2>
+<div class="butmain"><a href="0viewrecords.html" target="_blank">Despatch</a><br></div>
+<div class="butmain"><a href="1viewcompletedrecords.html" target="_blank">Allocated</a><br></div>
+<div class="butmain"><a href="5viewdriverslive_withmap.html" target="_blank">LIVE DRIVERS with MAP</a><br></div><br><hr>
+<h2 style="text-align: center;font-family: sans-serif; font-weight:600;">Manager</h2>
+<div class="butmain"><a href="3viewclosedjobs.html" target="_blank">CLOSED JOBS</a><br></div>
+<div class="butmain"><a href="4viewmanageraudit_withmap.html" target="_blank">Manager AUDIT with MAP</a><br></div>
+<div class="butmain"><a href="6viewdriverTrail.html" target="_blank">Driver Trail</a><br></div>
+<div class="butmain"><a href="7ploteditor.html" target="_blank">Plot Editor</a><br></div>
+</div>
+<script src='lib/shred.bundle.js' type='text/javascript'></script>
+<script src='lib/swagger.js' type='text/javascript'></script>
+<script src='lib/sdk-init.js' type='text/javascript'></script>
+<script>
+window.app = {};
+document.addEventListener('apiReady', checkSession, true);//dreamfactory
+function checkSession() {
+iky();
+    window.df.apis.user.getSession({"body":{}}, function (response) {
+      //hide login div  
+      // existing session found, assign session token
+      // to be used for the session duration
+      if(response.session_id==""){logIn();}else
+      {
+        var session = new ApiKeyAuthorization("X-Dreamfactory-Session-Token",
+            response.session_id, 'header');
+            sessionStorage.setItem("dfsess", JSON.stringigy(response.session_id));
+            sessionStorage.setItem("dfuser", JSON.stringigy(response.email));
+            sessionStorage.setItem("dfoffice", JSON.stringigy(response.last_name));
+        window.authorizations.add("X-DreamFactory-Session-Token", session);
+	document.getElementById("login").style.display="none";
+	document.getElementById("loginmain").style.display="none";
+	document.getElementById("loginbg").style.cssText="";
+	document.getElementById("accessme").style.display="";
+	document.getElementById('boldStuff').innerHTML = userid+"_"+officename;
+	alert("Welcome back");
+	runApp();}
+    }, function (response) {
+        // no valid session, try to log in
+        logIn();
+    });
+    
+    
+}
+function logIn() {
+
+    var email = document.getElementById('UserEmail').value;
+    var pw = document.getElementById('Password').value;
+    if (!email || !pw) {
+       // alert("You must enter your email address and password to continue.");
+        return;
+    }
+    var body = {
+        "email":email,
+        "password":pw
+    };
+        window.df.user.login({"body":body}, function (response) {
+        // assign session token to be used for the session duration , THIS IS OUR API I HAVE CHANGED IT
+        var session = new ApiKeyAuthorization("X-Dreamfactory-Session-Token",
+            response.session_id, 'header');
+        sessionStorage.setItem("dfsess", JSON.stringify(response.session_id));
+        sessionStorage.setItem("dfuser", JSON.stringify(response.email));
+        sessionStorage.setItem("dfoffice", JSON.stringify(response.last_name));
+        window.authorizations.add("X-DreamFactory-Session-Token", session);
+        userid=response.email;
+		officename=response.last_name;
+	document.getElementById("login").style.display="none";
+		document.getElementById("loginmain").style.display="none";
+	document.getElementById("loginbg").style.cssText="";
+	document.getElementById("accessme").style.display="";
+	
+	alert("Welcome you are now logged in");
+	document.getElementById('boldStuff').innerHTML = userid+"_"+officename;
+	
+    }, function (response) {
+        alert("Error getting session");
+    });
+}
+</script>
+    <script>
+function iky(){
+
+document.onkeyup = function (event) {
+   if(event.keyCode==18){ 
+   var boxes = document.querySelectorAll('.keytips');
+for(var x=0; x<boxes.length; x++)
+{
+  
+  boxes[x].style.display= "none";
+ 
+  }
+  console.log("up");
+   }
+}
+
+  document.onkeydown = function (event) {
+   if(event.keyCode==18){ 
+   
+    var boxes = document.querySelectorAll('.keytips');
+  for(var x=0; x<boxes.length; x++)
+  {
+    boxes[x].style.display= "block";
+  }
+  console.log("down");
+   }
+
+   }
+
+}
+</script>
+</body>
+</html>

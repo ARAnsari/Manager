@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>@media screen and (max-width:400px){
+#login{margin: 25px 0 0 -24px !important;width:300px !important;}
+#loginmain{width:300px !important;}
+}</style>
+</head>
+<body id="loginbg" style="background-image:url(images/Loginbg.png);">
+<p style="text-align:center; font-size:xx-large; color:#000;">Manager Audit<br>
+<b id='boldStuff'></b> </p> 
+<div id="loginmain" style=" display:block;height: 275px;margin: 150px auto; width:620px;">
+<p style="margin: 85px 0 0 48px;float: left;font-size: xx-large; color:#FFFFFF;">Please <spn style="color: cornflowerblue;">Login</spn></p>
+<div id="login" style="display:none;width: 400px;height: 250px;margin: 25px 0 0 210px;">  
+                    <label id="label" for="Email" class="keytips" accesskey="R" style="float:right;padding: 30px 50px 0 0;"></label>
+                    <input style="margin: 30px 0 0 47px;padding: 11px 0 8px 5px;width: 250px;background: transparent;border: solid 1px;color: white;font-size: medium;" placeholder="Email Address" type="email" accesskey="R" id="UserEmail" />
+                    <input style="margin: 15px 0 0 47px;padding: 11px 0 8px 5px;width: 250px;background: transparent;border: solid 1px;color: white;font-size: medium;" type="password" accesskey="P" id="Password" placeholder="Password" />
+                    <label id="label" for="Password" class="keytips" accesskey="P" style="float:right;padding: 15px 53px 0 0;"></label><br>
+                    <label id="label" for="login" class="keytips" accesskey="S" style="float:right;padding: 17px 53px 0 0;"></label>
+                    <button style="float: none;margin: 16px 0 0 47px;width: 257px;padding: 10px 0 11px 0;border: 0;color: cornflowerblue;background: #fff;font-size: medium;" onclick="logIn()" accesskey="S">Sign In</button>
+  </div></div>
+<div id="auditmain" style=" display:none;">
+<div class="solid" style="border-top:solid 1px; color:#000000;clear: both;margin: 0 0 10px 0;"></div>
+<div id="mapdiv" style="width: 600px; height: 400px; float:left;"></div>
+<script type="text/javascript" language="javascript" src="leaflet.js">   </script>
+<div id="networkconnectivity"></div>
+<label for="closejob" class="keytips" accesskey="J" style="float:left;"></label>
+<button class="ColVis_Button ColVis_MasterButton" onclick="closejob()" accesskey="J">Close job</button>
+<label for="ViewAudit" class="keytips" accesskey="V" style="float:left;"></label>
+<button class="ColVis_Button ColVis_MasterButton" onclick="ViewAudit()" accesskey="V">View Audit</button>
+<label for="clearAudit" class="keytips" accesskey="A" style="float:left;"></label>
+<button class="ColVis_Button ColVis_MasterButton" onclick="clearAudit()" accesskey="A">Clear Audit</button>
+<div id="audit"></div>
+<div class="solid" style="border-bottom:solid 1px; color:#000000;clear: both;margin: 0 0 20px 0;padding-top: 10px;"></div>
+</div>
+<!--<div id="socket-comm">
+<div class="userContainer">
+<div id="users"></div>
+</div>
+<div class="conversationContainer">
+<input type="text" id="data" />
+<input type="button" id="dataSend" value="send" />
+<div class="conversation" id="conversation"></div>
+</div>
+</div>-->
+<table id="example" class="display" cellspacing="0" width="100%"></table>
+<script type="text/javascript" language="javascript" src="jquery-1.11.1.min.js"></script>
+<script type="text/javascript" language="javascript" src="jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="leaflet.js">   </script>
+<script type="text/javascript" language="javascript" src="oms.min.js">   </script>
+<script src='lib/shred.bundle.js' type='text/javascript'></script>
+<script src='lib/swagger.js' type='text/javascript'></script>
+<script src='lib/sdk-init.js' type='text/javascript'></script>
+<script src='dataTables.colReorder.js' type='text/javascript'></script>
+<script src='dataTables.colVis.js' type='text/javascript'></script>
+<script src='dataTables.tableTools.js' type='text/javascript'></script>
+<script src='app4.js' type='text/javascript'></script>
+<script src="socket.io.min.js"></script>
+<script>
+function iky(){
+
+document.onkeyup = function (event) {
+   if(event.keyCode==18){ 
+   var boxes = document.querySelectorAll('.keytips');
+for(var x=0; x<boxes.length; x++)
+{
+  
+  boxes[x].style.display= "none";
+ 
+  }
+  console.log("up");
+   }
+}
+
+  document.onkeydown = function (event) {
+   if(event.keyCode==18){ 
+   
+    var boxes = document.querySelectorAll('.keytips');
+  for(var x=0; x<boxes.length; x++)
+  {
+    boxes[x].style.display= "block";
+  }
+  console.log("down");
+   }
+
+   }
+
+}
+</script>
+<link rel="stylesheet" type="text/css" href="combine.css">
+<link rel="stylesheet" type="text/css" href="leaflet.css">
+</body>
+</html>
+

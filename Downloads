@@ -1,0 +1,324 @@
+//////////////////////////////CRUD FROM TODO MONGO EXAMPLE///////////////////////////////////////////////////////
+///////////////////////////APP.JS////////////////////////////////////////////////////////////////////////////////
+//window.df.apis.localmongo.createRecords({"table_name":"scarscollection", "body":item}
+//i have only used getrecords 
+//table display some data formatting
+//data-table not yet granted
+//updates
+//a) despatch table update without page reload
+//b) update every 5 second (should be 30 second)
+//c) can get bookingref even when columns are swapped , 24 char string no commmas is the condition to extract
+//d) despatch function added will activate when integrate with chat room and states
+//despatchme()
+var bookingref;//selected row booking ref
+var userid;//controller id
+var metable;
+var dataSet=[];
+var firstime=0;
+var myjson={};
+var jobcontent={};
+var netstatus;
+var myobj;//the job record global var only valid after audit is called or selectval()
+window.app = {};
+document.addEventListener('apiReady', checkSession, true);//dreamfactory
+
+window.addEventListener("offline", function(e) {
+  document.getElementById('networkconnectivity').innerHTML="NETWORK:OFFLINE <br>";
+  netstatus=false;
+}, false);
+
+window.addEventListener("online", function(e) {
+  document.getElementById('networkconnectivity').innerHTML="NETWORK:ONLINE<br>";
+  netstatus=true;
+
+}, false);
+
+function checkSession() {
+
+    window.df.apis.user.getSession({"body":{}}, function (response) {
+      //hide login div  
+      // existing session found, assign session token
+      // to be used for the session duration
+      if(response.session_id==""){logIn();}else
+      {
+        var session = new ApiKeyAuthorization("X-Dreamfactory-Session-Token",
+            response.session_id, 'header');
+        window.authorizations.add("X-DreamFactory-Session-Token", session);
+	document.getElementById("login").style.display="none";
+	alert("Welcome back");
+	runApp();}
+    }, function (response) {
+        // no valid session, try to log in
+        logIn();
+    });
+    
+    
+}
+
+// main app entry point
+
+function runApp() {
+
+    // your app starts here
+    getRecords();
+}
+
+// CRUD
+
+
+
+function getRecords() {
+json=JSON.stringify({ "flag": 2});
+window.df.apis.localmongo.getRecordsByFilter({"table_name":"scarscollection",filter:json},function(response){
+         buildItemList(response);
+    }, crudError
+    );
+}
+
+
+function updateRecord(id, complete) {
+
+    var item = {"record":[
+        {"_id":id, "complete":complete}
+    ]};
+    df.apis.localmongo.updateRecords({"table_name":"scarscollection", "body":item}, function (response) {
+        getRecords();
+    }, crudError
+    );
+}
+
+
+// ui
+
+function buildItemList(json) {
+     myjson=json;//saving local copy of the entire table
+     dataSet=[];
+    if (json.record.length>0) {
+        json.record.forEach(function (entry) {
+	    var formatter=[];
+	   		    formatter.push(entry["date"]);
+			    formatter.push(entry["time"]);
+			    formatter.push(entry["curstatus"]);
+			    formatter.push(entry["jobref"]);
+			    formatter.push(entry["fromtovia"][0].address);
+			    formatter.push(entry["fromtovia"][1].address);
+			    formatter.push(entry["vehicletype"]);
+			    formatter.push(entry["fare"]);
+			    formatter.push(entry["tel"]);
+			    formatter.push(entry["email"]);
+			    formatter.push(entry["jobmileage"]);
+			    formatter.push(entry["_id"]);
+			    dataSet.push(formatter);
+        });
+	
+    }
+   // $(document).ready(function() {
+if(!firstime){
+   metable=$('#example').dataTable( {
+	        "dom": 'TC<"clear">lfrtip',
+		tableTools: {
+            "sRowSelect": "single",
+	    "sSwfPath": "../swf/copy_csv_xls_pdf.swf"
+        },
+	
+	    colReorder: {
+            realtime: true
+        },
+		"data": dataSet,
+	        //"ajax":JSON.stringify(dataSet),
+		"columns": [
+		
+
+			{ "title": "Date" },
+			{ "title": "Time" },
+			{ "title": "Status" },
+			{ "title": "Jobref" },
+			{ "title": "From" },
+			{ "title": "To" },
+			{ "title": "Vehicle Type" },
+			{ "title": "Fare" },
+			{ "title": "Tel" },
+			{ "title": "Email" },
+			{ "title": "Jobmileage" },
+		        { "title": "DBhash" }
+			
+			
+		],
+		  "aoColumnDefs": [ {
+      "aTargets": [2],
+      "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+        if ( sData == "runner"|| sData == "noshow"|| sData == "cancelled" ) {
+          $(nTd).css('background-color', 'red');
+	  
+        }
+        if ( sData == "completed" ) {
+          $(nTd).css('background-color', 'blue');
+	  
+        }
+      }
+    } ]
+	} );	
+   firstime +=1;
+   setInterval(getRecords, 30000);///////////every 30- seconds///////////////
+
+}
+//} );
+else{
+metable.fnClearTable(); //clear table 
+if(dataSet.length){
+  metable.fnAddData(dataSet);//redraw with updated data    
+}
+}
+//////////event handler for selectval/////////
+  // $('td').on('click',function() {
+   // var col = $(this).parent().children().index($(this));
+   // var row = $(this).parent().parent().children().index($(this).parent());
+  //  alert('Row: ' + row + ', Column: ' + col);
+ //   selectval();
+//});
+
+}
+
+// error utils
+
+function getErrorString(response) {
+
+    var msg = "An error occurred, but the server provided no additional information.";
+    if (response.content && response.content.data && response.content.data.error) {
+        msg = response.content.data.error[0].message;
+    }
+    msg = msg.replace(/&quot;/g, '"').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&apos;/g, '\'');
+    return msg;
+}
+
+function crudError(response) {
+
+    if (response.status == 401 || response.status == 403) {
+       logIn();
+    } else {
+        alert(getErrorString(response));
+    }
+}
+
+
+
+function logIn() {
+
+    var email = document.getElementById('UserEmail').value;
+    var pw = document.getElementById('Password').value;
+    if (!email || !pw) {
+        //alert("You must enter your email address and password to continue.");
+        return;
+    }
+    var body = {
+        "email":email,
+        "password":pw
+    };
+        window.df.user.login({"body":body}, function (response) {
+        // assign session token to be used for the session duration , THIS IS OUR API I HAVE CHANGED IT
+        var session = new ApiKeyAuthorization("X-Dreamfactory-Session-Token",
+            response.session_id, 'header');
+        window.authorizations.add("X-DreamFactory-Session-Token", session);
+        userid=response.email;
+	document.getElementById("login").style.display="none";
+	alert("Welcome you are now logged in");
+	document.getElementById('boldStuff').innerHTML = userid;
+	mysocketinit();
+        runApp();
+    }, function (response) {
+        alert("Error getting session");
+    });
+}
+
+
+//////////////////////
+
+function selectval()
+{
+var rowval=$('#example').DataTable().row(".selected").data();
+//selected row search all array members for 24 char length 
+//an address has the potential to duplicate with reference
+//but reference doesn't contain any commas
+//so we put both condition 
+// why all this 
+// as columns can be dynamically repositioned;
+//UPDATE COLUMN FROZEN SO THE ABOVE IS OBSOLETE
+//if(typeof rowval != 'undefined')
+//{
+//rowval.forEach(function(entry) {
+//    if((entry.length===24) && (entry.indexOf(',')===-1))
+//    {
+//      bookingref=entry;return;
+//        
+//    }
+//});
+//}
+//just get the 11th entry (starting from 0)
+bookingref=rowval[13];
+myjson.record.forEach(function (entry) {
+ if (entry["_id"]===bookingref){myobj=entry;return;}
+   
+});
+
+}
+///////////////////////////////////////////////////
+/////////////default.js///////////////////
+var socket;
+function mysocketinit(){
+//socket=io.connect(window.location.hostname);
+// socket=io.connect("http://6d5fa9a1.ngrok.com");
+socket=io.connect("http://localhost:3000");
+socket.on('connect',addUser);
+socket.on('updateChat',proceesMessage);
+socket.on('updateUsers',updateUserList);
+$('#dataSend').click(sendMessage);
+$('#data').keypress(processEnterPress);
+}
+function processEnterPress(e){
+if(e.which==13){
+e.preventDefault();
+$(this).blur();
+$('#dataSend').focus().click();
+}
+
+}
+function addUser(){
+socket.emit('addUser',userid);
+}
+
+function sendMessage(){
+var message=$('#data').val();
+socket.emit('sendChat',message);
+$('#data').val('');
+$('#data').focus();
+}
+
+function proceesMessage(username,data){
+$('<b>'+username+':</b>'+data+'<br/>').insertAfter($('#conversation'));
+}
+
+function updateUserList(userNames){
+$('#users').empty();
+$.each(userNames,function(key,value){
+$('#users').append('<div>'+key+'</div>');
+})
+}
+
+
+
+
+////////////////////////////////////
+
+
+
+
+function ViewAudit()
+{
+  selectval();//get the bookingref for selected row
+  document.getElementById("audit").innerHTML="<pre>"+JSON.stringify(myobj, null, 4)+"</pre>";//<pre> =>preformatted data
+}
+
+function closejob()
+{
+  audit("n/a","closed",2);
+}
